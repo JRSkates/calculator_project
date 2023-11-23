@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from .calculator import Calculator
 
 def home(request):
-  return render(request, 'calculator.app/home.html')
+  return render(request, 'calculator_app/home.html')
 
 def calculator(request):
   expression = request.GET.get('expression', '')
