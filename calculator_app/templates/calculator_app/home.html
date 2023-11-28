@@ -8,81 +8,72 @@
 </head>
 <body>
     <div id="calculator">
-      <form method="post" action="{% url 'calculate' %}">
-        {% csrf_token %}
-        <input type="text" id="display" name="display" readonly>
-        <br>
-        <button onclick="appendToDisplay('1')">1</button>
-        <button onclick="appendToDisplay('2')">2</button>
-        <button onclick="appendToDisplay('3')">3</button>
-        <button onclick="executeOperation('+')">+</button>
-        <br>
-        <button onclick="appendToDisplay('4')">4</button>
-        <button onclick="appendToDisplay('5')">5</button>
-        <button onclick="appendToDisplay('6')">6</button>
-        <button onclick="executeOperation('-')">-</button>
-        <br>
-        <button onclick="appendToDisplay('7')">7</button>
-        <button onclick="appendToDisplay('8')">8</button>
-        <button onclick="appendToDisplay('9')">9</button>
-        <button onclick="executeOperation('*')">*</button>
-        <br>
-        <button onclick="appendToDisplay('0')">0</button>
-        <button onclick="appendToDisplay('.')">.</button>
-        <button onclick="clearDisplay()">C</button>
-        <button onclick="executeOperation('/')">/</button>
-        <br>
-        <button onclick="executeFunction('square_root')">√</button>
-        <button onclick="executeFunction('sin')">sin</button>
-        <button onclick="executeFunction('cos')">cos</button>
-        <button onclick="executeFunction('tan')">tan</button>
-        <br>
-        <button onclick="executeFunction('calculate_expression')">( )</button>
-        <button onclick="executeFunction('raise_to_power_of')">^</button>
-        <button onclick="executeFunction('remainder')">%</button>
-        <button onclick="executeFunction('calculate_expression')">=</button>
-      </form>
-    </div>
+        <form method="post" action="{% url 'calculate' %}">
+            {% csrf_token %}
+            <input type="text" id="display" name="display" readonly>
+            <br>
+            <!-- Numeric buttons -->
+            <button onclick="appendToDisplay('1')">1</button>
+            <button onclick="appendToDisplay('2')">2</button>
+            <button onclick="appendToDisplay('3')">3</button>
+            <button onclick="appendToDisplay('4')">4</button>
+            <button onclick="appendToDisplay('5')">5</button>
+            <button onclick="appendToDisplay('6')">6</button>
+            <button onclick="appendToDisplay('7')">7</button>
+            <button onclick="appendToDisplay('8')">8</button>
+            <button onclick="appendToDisplay('9')">9</button>
+            <button onclick="appendToDisplay('0')">0</button>
+            <br>
+            <!-- Operation buttons -->
+            <button onclick="setOperation('+')">+</button>
+            <button onclick="setOperation('-')">-</button>
+            <button onclick="setOperation('*')">*</button>
+            <button onclick="setOperation('/')">/</button>
+            <!-- Equal button -->
+            <button onclick="calculateResult()">=</button>
+        </form>
 
-    <script>
+        <!-- Inside your HTML body -->
+      <script>
+        let currentExpression = "";  // Variable to store the current expression
+        
         const appendToDisplay = (value) => {
-          console.log('display value', value);
-            $("#display").val($("#display").val() + value);
+            currentExpression += value;
+            $("#display").val(currentExpression);
         }
-
+        
         const clearDisplay = () => {
+            currentExpression = "";
             $("#display").val('');
         }
-
+        
         const executeOperation = (operator) => {
-            appendToDisplay(operator);
+            currentExpression += operator;
+            $("#display").val(currentExpression);
         }
-
+        
         const executeFunction = (func) => {
-          let expression = $("#display").val();
-          let csrf_token = $('input[name="csrfmiddlewaretoken"]').val();  // Get CSRF token
-          let numericInputs = expression.split(' ').map(Number);
-
-          console.log('func value:', func),
-
-          $.ajax({
-              url: "{% url 'calculate' %}",
-              method: "POST",
-              headers: { 'X-CSRFToken': csrf_token },
-              contentType: 'application/json',
-              data: JSON.stringify({ expression: expression, func: func, numeric_inputs: numeric_inputs }),
-              success: function(result) {
-                  $("#display").val(result);
-              },
-              error: function(xhr, status, error) {
-                  const errorMessage = JSON.parse(xhr.responseText).error;
-                  alert(errorMessage);
-              }
-        });
-        console.log(JSON.stringify({ expression: expression, func: func }));
-
+            let csrf_token = $('input[name="csrfmiddlewaretoken"]').val();
+        
+            $.ajax({
+                url: "{% url 'calculate' %}",
+                method: "POST",
+                headers: { 'X-CSRFToken': csrf_token },
+                data: { expression: currentExpression, func: func },
+                success: function(result) {
+                    $("#display").val(result.result);
+                    currentExpression = result.result;  // Update current expression with the result
+                },
+                error: function(error) {
+                    console.error(error.responseJSON.error);
+                }
+            });
         }
-    </script>
+
+      </script>
+
+    </div>
 </body>
 </html>
+
 
